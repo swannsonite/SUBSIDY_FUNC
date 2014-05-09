@@ -9,7 +9,7 @@ static const int64_t COIN = 100000000;
 static const int64 nMinSubsidy = 1 * COIN;
 static const int CUTOFF_HEIGHT = 100800;	// Height at the end of 5 weeks
 // miner's coin base reward based on nBits
-int64 GetProofOfWorkReward(int nHeight, int64 nFees, uint256 prevHash)
+int64 GetBlockBaseValue(int nHeight)
 {
     int64 nSubsidy = COIN;
 
