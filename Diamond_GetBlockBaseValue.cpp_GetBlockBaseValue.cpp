@@ -6,65 +6,51 @@
 
 static const int64_t COIN = 100000000;
 
-double ConvertBitsToDouble(unsigned int nBits)
+static const int64 nMinSubsidy = 1 * COIN;
+static const int CUTOFF_HEIGHT = 100800;	// Height at the end of 5 weeks
+// miner's coin base reward based on nBits
+int64 GetProofOfWorkReward(int nHeight, int64 nFees, uint256 prevHash)
 {
-    int nShift = (nBits >> 24) & 0xff;
+    int64 nSubsidy = COIN;
 
-    double dDiff =
-        (double)0x0000ffff / (double)(nBits & 0x00ffffff);
-
-    while (nShift < 29)
+    if(totalCoin < VALUE_CHANGE)
     {
-        dDiff *= 256.0;
-        nShift++;
-    }
-    while (nShift > 29)
-    {
-        dDiff /= 256.0;
-        nShift--;
-    }
+        std::string cseed_str = prevHash.ToString().substr(6,7);
+        const char* cseed = cseed_str.c_str();
+        long seed = hex2long(cseed);
+        int rand = generateMTRandom(seed, 14400);
 
-    return dDiff;
-}
-
-int64_t static GetBlockBaseValue(int nBits, int nHeight)
-{
-    double dDiff =
-        (double)0x0000ffff / (double)(nBits & 0x00ffffff);
-
-    /* fixed bug caused diff to not be correctly calculated */
-    if(nHeight > 4500) dDiff = ConvertBitsToDouble(nBits);
-
-    int64_t nSubsidy = 0; 
-    if(nHeight >= 5465) {
-        if((nHeight >= 17000 && dDiff > 75) || nHeight >= 24000) { // GPU/ASIC difficulty calc
-            // 2222222/(((x+2600)/9)^2)
-            nSubsidy = (2222222.0 / (pow((dDiff+2600.0)/9.0,2.0)));
-            if (nSubsidy > 25) nSubsidy = 25;
-            if (nSubsidy < 5) nSubsidy = 5;
-        } else { // CPU mining calc
-            nSubsidy = (11111.0 / (pow((dDiff+51.0)/6.0,2.0)));
-            if (nSubsidy > 500) nSubsidy = 500;
-            if (nSubsidy < 25) nSubsidy = 25;
+        // printf(">>> nHeight = %d, Rand = %d\n", nHeight, rand);
+        if(rand > 10000 && rand < 10011)
+        {
+            nSubsidy = 30 * COIN;
         }
-    } else {
-        nSubsidy = (1111.0 / (pow((dDiff+1.0),2.0)));
-        if (nSubsidy > 500) nSubsidy = 500;
-        if (nSubsidy < 1) nSubsidy = 1;
+        else if(rand > 2000 && rand < 2031)
+        {
+            nSubsidy = 8 * COIN;
+        }
+        else if(rand > 8000 && rand < 8101)
+        {
+            nSubsidy = 2 * COIN;
+        }
     }
-
-    //printf("height %u diff %4.2f reward %i \n", nHeight, dDiff, nSubsidy);
-    nSubsidy *= COIN;
-
-    return nSubsidy;
+    else
+    {
+        if(totalCoin > 1000000)
+            nSubsidy = 10 * CENT;
+        else if(totalCoin > 2500000)
+            nSubsidy = 2 * CENT;
+    }
+    return nSubsidy + nFees;
 }
+
 
 
 #include <boost/python/module.hpp>
 #include <boost/python/def.hpp>
 using namespace boost::python;
  
-BOOST_PYTHON_MODULE(darkcoin_subsidy)
+BOOST_PYTHON_MODULE(Diamond_subsidy)
 {
     def("GetBlockBaseValue", GetBlockBaseValue);
 }
