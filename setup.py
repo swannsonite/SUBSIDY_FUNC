@@ -1,8 +1,8 @@
 from distutils.core import setup
 from distutils.extension import Extension
 
-setup(name="darkcoin_subsidys",
+setup(name="Diamond_subsidys",
     ext_modules=[
-        Extension("darkcoin_subsidy", ["darkcoin_GetBlockBaseValue.cpp"],
+        Extension("Diamond_subsidy", ["Diamond_GetBlockBaseValue.cpp"],
         libraries = ["boost_python"])
     ])
